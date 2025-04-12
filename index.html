@@ -4,544 +4,882 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>太湖新区数字孪生平台</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/maptalks/dist/maptalks.css">
+    <script src="https://unpkg.com/maptalks/dist/maptalks.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Noto Sans SC', sans-serif;
+            font-family: "Microsoft YaHei", sans-serif;
         }
         
         body {
             width: 1920px;
-            height: 1080px;
-            background-color: #030b20;
-            color: #fff;
+            height: 860px;
+            background-color: #0a1029;
+            color: #ffffff;
             overflow: hidden;
             position: relative;
         }
         
-        .platform {
+        /* 动态背景网格 */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 162, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 162, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            z-index: 0;
+            animation: gridMove 20s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 20px; }
+        }
+        
+        .container {
             width: 100%;
             height: 100%;
             display: flex;
-            flex-direction: column;
-        }
-        
-        /* 标题区域 */
-        .header {
-            height: 80px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(90deg, transparent, rgba(0, 149, 233, 0.1), transparent);
             position: relative;
-            z-index: 10;
+            z-index: 1;
         }
         
-        .title {
-            font-size: 36px;
-            font-weight: bold;
-            color: #0095e9;
-            text-shadow: 0 0 10px rgba(0, 149, 233, 0.5);
-            letter-spacing: 2px;
-        }
-        
-        .admin-button {
-            position: absolute;
-            right: 30px;
-            top: 25px;
-            background-color: rgba(0, 149, 233, 0.2);
-            color: #0095e9;
-            border: 1px solid #0095e9;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        .admin-button:hover {
-            background-color: rgba(0, 149, 233, 0.4);
-        }
-        
-        /* 主内容区 */
-        .content {
-            flex: 1;
-            display: flex;
-            padding: 0 20px 20px;
-        }
-        
-        /* 左侧面板 */
-        .left-panel {
-            width: 360px;
-            margin-right: 15px;
+        /* 不规则面板设计 */
+        .left-panel, .right-panel {
+            width: 350px;
+            background-color: rgba(13, 19, 48, 0.8);
+            border: 1px solid #1e3a5f;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 15px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            z-index: 2;
         }
         
-        /* 中间地图 */
+        .left-panel {
+            clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
+            border-left: none;
+            border-radius: 0 20px 20px 0;
+        }
+        
+        .right-panel {
+            clip-path: polygon(4% 0, 100% 0, 100% 100%, 0 100%);
+            border-right: none;
+            border-radius: 20px 0 0 20px;
+        }
+        
+        /* 发光边框效果 */
+        .left-panel::after, .right-panel::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 1px solid #00a2ff;
+            box-shadow: 0 0 15px rgba(0, 162, 255, 0.5);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .left-panel::after {
+            clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
+        }
+        
+        .right-panel::after {
+            clip-path: polygon(4% 0, 100% 0, 100% 100%, 0 100%);
+        }
+        
+        .center-panel {
+            flex: 1;
+            padding: 15px 0;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 10px 0 20px;
+            position: relative;
+        }
+        
+        /* 灵动的标题设计 */
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(0, 162, 255, 0.8);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .title::before, .title::after {
+            content: "";
+            position: absolute;
+            height: 3px;
+            background: linear-gradient(90deg, rgba(0,162,255,0), #00a2ff 50%, rgba(0,162,255,0));
+            width: 150px;
+            animation: titleLine 3s ease-in-out infinite;
+        }
+        
+        .title::before {
+            left: -170px;
+            top: 50%;
+        }
+        
+        .title::after {
+            right: -170px;
+            top: 50%;
+        }
+        
+        @keyframes titleLine {
+            0%, 100% { width: 150px; opacity: 0.8; }
+            50% { width: 120px; opacity: 0.3; }
+        }
+        
         .map-container {
             flex: 1;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid rgba(0, 149, 233, 0.3);
+            background-color: #0a1735;
             position: relative;
-        }
-        
-        /* 右侧面板 */
-        .right-panel {
-            width: 360px;
-            margin-left: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        /* 面板样式 */
-        .panel {
-            background-color: rgba(7, 23, 58, 0.7);
-            border: 1px solid rgba(0, 149, 233, 0.3);
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 0 15px rgba(0, 18, 38, 0.5);
-            display: flex;
-            flex-direction: column;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 162, 255, 0.2);
         }
         
         .panel-title {
             font-size: 18px;
-            color: #0095e9;
-            margin-bottom: 15px;
+            font-weight: bold;
+            padding: 8px 0;
+            color: #00a2ff;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+        
+        /* 酷炫的面板标题 */
+        .panel-title::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(0,162,255,0), #00a2ff, rgba(0,162,255,0));
+        }
+        
+        .panel-title span:first-child {
             position: relative;
             padding-left: 15px;
         }
         
-        .panel-title::before {
-            content: '';
+        .panel-title span:first-child::before {
+            content: "";
             position: absolute;
             left: 0;
-            height: 16px;
-            width: 4px;
-            background: linear-gradient(to bottom, #4cc3ff, transparent);
-            border-radius: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background-color: #ffcc00;
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            animation: rotateDiamond 3s linear infinite;
         }
         
-        .panel-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+        @keyframes rotateDiamond {
+            0% { transform: translateY(-50%) rotate(0deg); }
+            100% { transform: translateY(-50%) rotate(360deg); }
         }
         
-        /* 数据项样式 */
-        .data-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .data-card {
+            background-color: rgba(0, 48, 102, 0.5);
+            border: 1px solid rgba(30, 58, 95, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+            perspective: 1000px;
         }
         
-        .data-item {
+        .data-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 162, 255, 0.2);
+        }
+        
+        /* 数据卡片的发光角落 */
+        .data-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 30px;
+            height: 30px;
+            border-top: 2px solid #00a2ff;
+            border-left: 2px solid #00a2ff;
+            opacity: 0.6;
+        }
+        
+        .data-card::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 30px;
+            height: 30px;
+            border-bottom: 2px solid #00a2ff;
+            border-right: 2px solid #00a2ff;
+            opacity: 0.6;
+        }
+        
+        .data-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            margin-bottom: 10px;
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
         }
         
         .data-label {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 14px;
+            color: #8eb9e0;
         }
         
         .data-value {
-            color: #4cc3ff;
-            font-size: 14px;
-            font-weight: 500;
+            color: #ffffff;
+            font-weight: bold;
         }
         
-        .highlight-value {
-            color: #ffcc29;
+        .highlight {
+            color: #ffcc00;
+            text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
         }
         
-        .warning-value {
-            color: #ff4d4f;
+        .warning {
+            color: #ff5252;
+            animation: pulse 2s infinite;
         }
         
-        /* 卡片网格样式 */
-        .card-grid {
+        @keyframes pulse {
+            0%, 100% { text-shadow: 0 0 5px rgba(255, 82, 82, 0.3); }
+            50% { text-shadow: 0 0 15px rgba(255, 82, 82, 0.8); }
+        }
+        
+        .success {
+            color: #4caf50;
+        }
+        
+        .data-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
         }
         
-        .card {
-            background-color: rgba(0, 149, 233, 0.1);
-            border-radius: 6px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        .stat-card {
+            background-color: rgba(0, 60, 120, 0.5);
+            border: 1px solid rgba(0, 162, 255, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
         
-        .card-title {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 8px;
+        /* 数据卡片闪光 */
+        .stat-card::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.1) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(45deg);
+            animation: shine 4s infinite;
+            pointer-events: none;
         }
         
-        .card-value {
-            font-size: 20px;
+        @keyframes shine {
+            0% { left: -50%; top: -50%; }
+            100% { left: 150%; top: 150%; }
+        }
+        
+        .stat-value {
+            font-size: 26px;
             font-weight: bold;
-            color: #4cc3ff;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
+            position: relative;
         }
         
-        .card-subvalue {
+        .stat-label {
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
+            color: #8eb9e0;
             margin-top: 5px;
         }
         
-        /* 进度条样式 */
         .progress-bar {
-            width: 100%;
-            height: 6px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 8px;
-        }
-        
-        .progress {
-            height: 100%;
-            background-color: #4cc3ff;
-            border-radius: 3px;
-        }
-        
-        /* 地图控件 */
-        .map-controls {
-            position: absolute;
-            bottom: 15px;
-            left: 15px;
-            z-index: 10;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .map-control-btn {
-            background-color: rgba(7, 23, 58, 0.8);
-            border: 1px solid rgba(0, 149, 233, 0.5);
-            color: #4cc3ff;
-            padding: 8px 12px;
+            height: 8px;
+            background-color: rgba(14, 36, 57, 0.7);
             border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
+            margin-top: 5px;
+            overflow: hidden;
+            position: relative;
         }
         
-        .map-legend {
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0075ff, #00a2ff);
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        /* 进度条流光效果 */
+        .progress-fill::after {
+            content: "";
             position: absolute;
-            bottom: 15px;
-            right: 15px;
-            background-color: rgba(7, 23, 58, 0.8);
-            border: 1px solid rgba(0, 149, 233, 0.3);
-            border-radius: 6px;
-            padding: 10px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.3), 
+                transparent);
+            animation: progressShine 2s infinite;
+        }
+        
+        @keyframes progressShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .admin-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 48, 102, 0.7);
+            border: 1px solid #00a2ff;
+            color: #00a2ff;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+            z-index: 100;
+        }
+        
+        .admin-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.3s ease;
+        }
+        
+        .admin-btn:hover::before {
+            left: 100%;
+        }
+        
+        .admin-btn:hover {
+            background-color: rgba(0, 162, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 162, 255, 0.3);
+        }
+        
+        /* 动态装饰元素 */
+        .map-decoration {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(0, 162, 255, 0.05);
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .decoration1 {
+            width: 200px;
+            height: 200px;
+            top: -100px;
+            left: -100px;
+            border: 1px solid rgba(0, 162, 255, 0.1);
+            animation: rotate 30s linear infinite;
+        }
+        
+        .decoration2 {
+            width: 400px;
+            height: 400px;
+            bottom: -200px;
+            right: -200px;
+            border: 1px dashed rgba(0, 162, 255, 0.1);
+            animation: rotate 50s linear infinite reverse;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 地图装饰 */
+        .map-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
             z-index: 10;
         }
         
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-            font-size: 12px;
+        .map-corner {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            pointer-events: none;
         }
         
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 2px;
-            margin-right: 5px;
+        .corner-tl {
+            top: 0;
+            left: 0;
+            border-top: 2px solid #00a2ff;
+            border-left: 2px solid #00a2ff;
+        }
+        
+        .corner-tr {
+            top: 0;
+            right: 0;
+            border-top: 2px solid #00a2ff;
+            border-right: 2px solid #00a2ff;
+        }
+        
+        .corner-bl {
+            bottom: 0;
+            left: 0;
+            border-bottom: 2px solid #00a2ff;
+            border-left: 2px solid #00a2ff;
+        }
+        
+        .corner-br {
+            bottom: 0;
+            right: 0;
+            border-bottom: 2px solid #00a2ff;
+            border-right: 2px solid #00a2ff;
+        }
+        
+        .radar-scan {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, 
+                transparent 0%, 
+                transparent 49.9%, 
+                rgba(0, 162, 255, 0.2) 50%, 
+                transparent 51%, 
+                transparent 100%);
+            animation: scan 4s linear infinite;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        @keyframes scan {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 响应式动效 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .data-card {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .data-card:nth-child(1) { animation-delay: 0.1s; }
+        .data-card:nth-child(2) { animation-delay: 0.2s; }
+        .data-card:nth-child(3) { animation-delay: 0.3s; }
+        .data-card:nth-child(4) { animation-delay: 0.4s; }
+        
+        /* 数据更新指示器 */
+        .data-update {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #4caf50;
+            border-radius: 50%;
+            margin-left: 5px;
+            position: relative;
+        }
+        
+        .data-update::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #4caf50;
+            border-radius: 50%;
+            animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+            opacity: 0.75;
+        }
+        
+        @keyframes ping {
+            75%, 100% {
+                transform: scale(2);
+                opacity: 0;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="platform">
-        <div class="header">
-            <h1 class="title">太湖新区数字孪生平台</h1>
-            <button class="admin-button">后台管理</button>
+    <!-- 装饰元素 -->
+    <div class="map-decoration decoration1"></div>
+    <div class="map-decoration decoration2"></div>
+    
+    <div class="container">
+        <!-- 左侧面板 -->
+        <div class="left-panel">
+            <!-- 综合汛情 -->
+            <div class="data-card">
+                <div class="panel-title">
+                    <span>综合汛情</span>
+                    <small>实时数据 <span class="data-update"></span></small>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">台风预警</span>
+                    <span class="data-value warning">已发布</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">暴雨预警</span>
+                    <span class="data-value warning">已发布</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">黄浦江潮位</span>
+                    <span class="data-value">4.25m</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">普通潮位</span>
+                    <span class="data-value">3.15m</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">洪水情况</span>
+                    <span class="data-value">轻微</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">富林河</span>
+                    <span class="data-value">监测中</span>
+                </div>
+            </div>
+
+            <!-- 工情监测 -->
+            <div class="data-card">
+                <div class="panel-title">
+                    <span>工情监测</span>
+                    <small>运行状态 <span class="data-update"></span></small>
+                </div>
+                <div class="data-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">10</div>
+                        <div class="stat-label">闸站总数</div>
+                        <div class="data-row">
+                            <span class="data-label">已开启</span>
+                            <span class="data-value">1</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">泵站总数</div>
+                        <div class="data-row">
+                            <span class="data-label">已开启</span>
+                            <span class="data-value">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 水雨情监测 -->
+            <div class="data-card">
+                <div class="panel-title">
+                    <span>水雨情监测</span>
+                    <small>实时监测 <span class="data-update"></span></small>
+                </div>
+                <div class="data-grid">
+                    <div class="stat-card">
+                        <div class="stat-value warning">100</div>
+                        <div class="stat-label">当前降雨量(mm)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">21</div>
+                        <div class="stat-label">水情站点</div>
+                        <div class="data-row">
+                            <span class="data-label">已下立交</span>
+                            <span class="data-value warning">14</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <div class="content">
-            <!-- 左侧面板 -->
-            <div class="left-panel">
-                <!-- 综合汛情 -->
-                <div class="panel" style="flex: 2;">
-                    <div class="panel-title">综合汛情</div>
-                    <div class="panel-content">
-                        <div class="data-list">
-                            <div class="data-item">
-                                <span class="data-label">台风预警</span>
-                                <span class="data-value warning-value">三级</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">暴雨预警</span>
-                                <span class="data-value warning-value">二级</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">黄浦江潮位</span>
-                                <span class="data-value">4.82m</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">普通潮位</span>
-                                <span class="data-value">3.21m</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">洪水</span>
-                                <span class="data-value">平稳</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">富林河</span>
-                                <span class="data-value highlight-value">上涨</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 工情监测 -->
-                <div class="panel" style="flex: 1.5;">
-                    <div class="panel-title">工情监测</div>
-                    <div class="panel-content">
-                        <div class="card-grid">
-                            <div class="card">
-                                <div class="card-title">闸站</div>
-                                <div class="card-value">10</div>
-                                <div class="card-subvalue">已开启: 1</div>
-                            </div>
-                            <div class="card">
-                                <div class="card-title">泵站</div>
-                                <div class="card-value">0</div>
-                                <div class="card-subvalue">已开启: 0</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 水雨情监测 -->
-                <div class="panel" style="flex: 1.5;">
-                    <div class="panel-title">水雨情监测</div>
-                    <div class="panel-content">
-                        <div class="data-list">
-                            <div class="data-item">
-                                <span class="data-label">当前降雨量</span>
-                                <span class="data-value warning-value">100mm</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">水情站点</span>
-                                <span class="data-value">总计: 21个</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">已下立交</span>
-                                <span class="data-value highlight-value">14个</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- 中间面板 -->
+        <div class="center-panel">
+            <div class="header">
+                <h1 class="title">太湖新区数字孪生平台</h1>
+                <button class="admin-btn">后台管理</button>
             </div>
-            
-            <!-- 中间地图 -->
             <div class="map-container">
-                <div id="map"></div>
-                
-                <div class="map-controls">
-                    <button class="map-control-btn">降雨量</button>
-                    <button class="map-control-btn">水位</button>
-                    <button class="map-control-btn">易涝点</button>
-                    <button class="map-control-btn">泵闸</button>
-                </div>
-                
-                <div class="map-legend">
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #ff4d4f;"></div>
-                        <span>易涝点</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #4cc3ff;"></div>
-                        <span>闸站</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #ffcc29;"></div>
-                        <span>泵站</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #52c41a;"></div>
-                        <span>下立交</span>
-                    </div>
+                <div id="map" style="width: 100%; height: 100%;"></div>
+                <div class="map-overlay">
+                    <div class="map-corner corner-tl"></div>
+                    <div class="map-corner corner-tr"></div>
+                    <div class="map-corner corner-bl"></div>
+                    <div class="map-corner corner-br"></div>
+                    <div class="radar-scan"></div>
                 </div>
             </div>
-            
-            <!-- 右侧面板 -->
-            <div class="right-panel">
-                <!-- 巡查养护 -->
-                <div class="panel" style="flex: 1.5;">
-                    <div class="panel-title">巡查养护</div>
-                    <div class="panel-content">
-                        <div class="data-list">
-                            <div class="data-item">
-                                <span class="data-label">泵闸</span>
-                                <span class="data-value">793个</span>
-                            </div>
-                            <div style="margin-bottom: 5px;">
-                                <div class="data-label" style="font-size: 12px;">完成率: 32.1%</div>
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 32.1%;"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="data-item">
-                                <span class="data-label">河道</span>
-                                <span class="data-value">0个</span>
-                            </div>
-                            <div style="margin-bottom: 5px;">
-                                <div class="data-label" style="font-size: 12px;">完成率: 28.3%</div>
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 28.3%;"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        </div>
+        
+        <!-- 右侧面板 -->
+        <div class="right-panel">
+            <!-- 巡查养护 -->
+            <div class="data-card">
+                <div class="panel-title">
+                    <span>巡查养护</span>
+                    <small>完成情况 <span class="data-update"></span></small>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">泵闸</span>
+                    <span class="data-value"><span class="highlight">793</span> 个</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">完成率</span>
+                    <span class="data-value">32.1%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 32.1%"></div>
                 </div>
                 
-                <!-- 区域概况 -->
-                <div class="panel" style="flex: 2;">
-                    <div class="panel-title">区域概况</div>
-                    <div class="panel-content">
-                        <div class="data-list">
-                            <div class="data-item">
-                                <span class="data-label">镇区街道</span>
-                                <span class="data-value">20个</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">圩区分布</span>
-                                <span class="data-value">0个</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">市级河道</span>
-                                <span class="data-value">7条</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">圩区设施</span>
-                                <span class="data-value">783条</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="data-row" style="margin-top: 15px;">
+                    <span class="data-label">河道</span>
+                    <span class="data-value"><span class="highlight">0</span> 个</span>
                 </div>
-                
-                <!-- 防汛资源 -->
-                <div class="panel" style="flex: 1.5;">
-                    <div class="panel-title">防汛资源</div>
-                    <div class="panel-content">
-                        <div class="data-list">
-                            <div class="data-item">
-                                <span class="data-label">应急队伍</span>
-                                <span class="data-value">244名</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">防汛仓库</span>
-                                <span class="data-value">33个</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">应急排涝车</span>
-                                <span class="data-value">0辆</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="data-row">
+                    <span class="data-label">完成率</span>
+                    <span class="data-value">28.3%</span>
                 </div>
-                
-                <!-- 隔障对象 -->
-                <div class="panel" style="flex: 1.5;">
-                    <div class="panel-title">隔障对象</div>
-                    <div class="panel-content">
-                        <div class="data-list">
-                            <div class="data-item">
-                                <span class="data-label">下立交</span>
-                                <span class="data-value">14处</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">敏感点</span>
-                                <span class="data-value">1个</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">易涝点</span>
-                                <span class="data-value warning-value">29个</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 28.3%"></div>
+                </div>
+            </div>
+
+            <!-- 区域概况 -->
+            <div class="data-card">
+                <div class="panel-title">
+                    <span>区域概况</span>
+                    <small>基础信息</small>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">镇区街道</span>
+                    <span class="data-value"><span class="highlight">20</span> 个</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">圩区分布</span>
+                    <span class="data-value"><span class="highlight">0</span> 个</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">市级河道</span>
+                    <span class="data-value"><span class="highlight">7</span> 条</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">圩区设施</span>
+                    <span class="data-value"><span class="highlight">783</span> 条</span>
+                </div>
+            </div>
+
+            <!-- 防汛资源 -->
+            <div class="data-card">
+                <div class="panel-title">
+                    <span>防汛资源</span>
+                    <small>资源统计</small>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">应急队伍</span>
+                    <span class="data-value"><span class="highlight">244</span> 名</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">防汛仓库</span>
+                    <span class="data-value"><span class="highlight">33</span> 个</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">应急排涝车</span>
+                    <span class="data-value"><span class="highlight">0</span> 辆</span>
+                </div>
+            </div>
+
+            <!-- 隔障对象 -->
+            <div class="data-card">
+                <div class="panel-title">
+                    <span>隔障对象</span>
+                    <small>风险点位</small>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">下立交</span>
+                    <span class="data-value warning"><span class="highlight">14</span> 处</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">敏感点</span>
+                    <span class="data-value"><span class="highlight">1</span> 个</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">易涝点</span>
+                    <span class="data-value warning"><span class="highlight">29</span> 个</span>
                 </div>
             </div>
         </div>
     </div>
-
+    
     <script>
         // 初始化地图
         var map = new maptalks.Map('map', {
-            center: [120.31191, 31.49117],  // 无锡中心坐标
-            zoom: 11,
+            center: [120.301, 31.57], // 无锡的大致经纬度
+            zoom: 12,
             baseLayer: new maptalks.TileLayer('base', {
                 urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
                 subdomains: ['a','b','c','d'],
                 attribution: '&copy; <a href="http://osm.org">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/">CARTO</a>'
             }),
-            layers: []
+            layers: [
+                new maptalks.VectorLayer('vector')
+            ]
         });
         
-        // 添加无锡行政区划轮廓
-        fetch('https://geo.datav.aliyun.com/areas_v3/bound/320200_full.json')
-            .then(response => response.json())
-            .then(geojson => {
-                new maptalks.VectorLayer('districts', {
-                    enableAltitude: true
-                })
-                .addGeometry(maptalks.GeoJSON.toGeometry(geojson, {
-                    style: {
-                        'symbol': {
-                            'lineColor': '#0095e9',
-                            'lineWidth': 1,
-                            'polygonFill': 'rgba(0, 149, 233, 0.1)',
-                            'polygonOpacity': 0.6
-                        }
-                    }
-                }))
-                .addTo(map);
-            });
+        // 添加监测站点
+        var vector = map.getLayer('vector');
+        
+        // 添加水情站点
+        for (var i = 0; i < 21; i++) {
+            var lng = 120.301 + (Math.random() - 0.5) * 0.2;
+            var lat = 31.57 + (Math.random() - 0.5) * 0.2;
             
-        // 模拟添加易涝点
-        var floodPoints = [
-            [120.31, 31.49], [120.33, 31.50], [120.29, 31.47],
-            [120.35, 31.48], [120.28, 31.51], [120.32, 31.46],
-            [120.36, 31.45], [120.30, 31.52], [120.27, 31.49]
-        ].map(coord => {
-            return {
-                type: 'Point',
-                coordinates: coord
-            };
-        });
-        
-        new maptalks.VectorLayer('floodPoints')
-            .addGeometry(maptalks.GeoJSON.toGeometry(floodPoints, {
+            var marker = new maptalks.Marker([lng, lat], {
                 symbol: {
                     'markerType': 'ellipse',
-                    'markerFill': '#ff4d4f',
-                    'markerWidth': 15,
-                    'markerHeight': 15,
-                    'markerLineWidth': 0,
-                    'markerOpacity': 0.8
+                    'markerFill': i < 14 ? '#ff5252' : '#00a2ff',
+                    'markerFillOpacity': 0.8,
+                    'markerLineColor': '#fff',
+                    'markerLineWidth': 1,
+                    'markerLineOpacity': 1,
+                    'markerWidth': 8,
+                    'markerHeight': 8
                 }
-            }))
-            .addTo(map);
+            });
+            vector.addGeometry(marker);
+        }
+        
+        // 添加易涝点
+        for (var i = 0; i < 29; i++) {
+            var lng = 120.301 + (Math.random() - 0.5) * 0.18;
+            var lat = 31.57 + (Math.random() - 0.5) * 0.18;
+            
+            var circle = new maptalks.Circle([lng, lat], 200 + Math.random() * 300, {
+                symbol: {
+                    'lineColor': '#ff5252',
+                    'lineWidth': 1,
+                    'polygonFill': '#ff5252',
+                    'polygonOpacity': 0.2
+                }
+            });
+            vector.addGeometry(circle);
+        }
+        
+        // 添加河流
+        var river1 = new maptalks.LineString([
+            [120.22, 31.52],
+            [120.25, 31.53],
+            [120.28, 31.55],
+            [120.30, 31.56],
+            [120.32, 31.58],
+            [120.35, 31.59],
+            [120.38, 31.62]
+        ], {
+            symbol: {
+                'lineColor': '#00a2ff',
+                'lineWidth': 3,
+                'lineOpacity': 0.8
+            }
+        });
+        vector.addGeometry(river1);
+        
+        // 添加闸站
+        for (var i = 0; i < 10; i++) {
+            var lng = 120.28 + (Math.random() - 0.5) * 0.15;
+            var lat = 31.56 + (Math.random() - 0.5) * 0.15;
+            
+            var station = new maptalks.Marker([lng, lat], {
+                symbol: {
+                    'markerType': 'square',
+                    'markerFill': i < 1 ? '#ffcc00' : '#00a2ff',
+                    'markerFillOpacity': 0.9,
+                    'markerLineColor': '#fff',
+                    'markerLineWidth': 1,
+                    'markerLineOpacity': 1,
+                    'markerWidth': 10,
+                    'markerHeight': 10
+                }
+            });
+            vector.addGeometry(station);
+        }
+
+        // 添加数据更新动效
+        setInterval(function() {
+            // 模拟数据更新的效果
+            var statValues = document.querySelectorAll('.stat-value');
+            var randomIndex = Math.floor(Math.random() * statValues.length);
+            
+            statValues[randomIndex].classList.add('blink');
+            setTimeout(function() {
+                statValues[randomIndex].classList.remove('blink');
+            }, 1000);
+        }, 3000);
+        
+        // CSS动画效果
+        var style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes blink {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.3; }
+            }
+            .blink {
+                animation: blink 0.5s ease-in-out;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
