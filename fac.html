@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太湖新区智慧工厂</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #0a0f1e;
+            color: #e0e6f0;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .container {
+            width: 1920px;
+            height: 860px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 400px 1fr 400px;
+            grid-template-rows: 60px 1fr;
+            gap: 10px;
+            padding: 10px;
+        }
+        
+        .header {
+            grid-column: 1 / 4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(90deg, rgba(0,4,40,0.8) 0%, rgba(0,7,61,0.9) 50%, rgba(0,4,40,0.8) 100%);
+            border-bottom: 2px solid #ffde00;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(255, 222, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before, .header::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 2px;
+            background-color: #ffde00;
+            animation: scanLine 4s infinite linear;
+        }
+        
+        .header::before {
+            top: 0;
+            left: -200px;
+        }
+        
+        .header::after {
+            bottom: 0;
+            right: -200px;
+        }
+        
+        @keyframes scanLine {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(2000px); }
+        }
+        
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 222, 0, 0.7);
+            letter-spacing: 2px;
+        }
+        
+        .left-panel, .right-panel {
+            background-color: rgba(4, 24, 61, 0.7);
+            border: 1px solid #174293;
+            border-radius: 5px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow: auto;
+            box-shadow: 0 0 10px rgba(0, 150, 255, 0.2);
+        }
+        
+        .panel-title {
+            font-size: 18px;
+            color: #ffde00;
+            border-bottom: 1px solid #2a5ca1;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-content {
+            flex: 1;
+            overflow: auto;
+        }
+        
+        .panel-section {
+            background-color: rgba(9, 32, 74, 0.8);
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #0084ff;
+            padding: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .event-count {
+            display: inline-block;
+            background-color: #ffde00;
+            color: #000;
+            font-weight: bold;
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-left: 5px;
+            font-size: 14px;
+            min-width: 24px;
+            text-align: center;
+        }
+        
+        .event-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            transition: background-color 0.3s;
+            font-size: 14px;
+        }
+        
+        .event-item:hover {
+            background-color: rgba(255, 222, 0, 0.1);
+        }
+        
+        .event-name {
+            color: #acd2ff;
+        }
+        
+        .event-time {
+            color: #7a8ca5;
+            font-size: 12px;
+        }
+        
+        .cameras-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .camera-feed {
+            position: relative;
+            border: 1px solid #1d4988;
+            border-radius: 5px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+        }
+        
+        .camera-feed img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .camera-label {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #ffde00;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .personnel-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #1d4988;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            color: #ffde00;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .personnel-info {
+            flex: 1;
+        }
+        
+        .personnel-name {
+            color: #e0e6f0;
+            font-weight: bold;
+        }
+        
+        .personnel-title {
+            color: #7a8ca5;
+            font-size: 12px;
+        }
+        
+        .status-online {
+            width: 8px;
+            height: 8px;
+            background-color: #00ff9d;
+            border-radius: 50%;
+            margin-left: auto;
+            box-shadow: 0 0 5px rgba(0, 255, 157, 0.7);
+        }
+        
+        .factory-model {
+            background-color: rgba(4, 24, 61, 0.5);
+            border: 1px solid #174293;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #factory-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .time-display {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #ffde00;
+        }
+        
+        .data-point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ffde00;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 222, 0, 0.7);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .stats-title {
+            font-size: 14px;
+            color: #7a8ca5;
+        }
+        
+        .flash {
+            animation: flash 1s;
+        }
+        
+        @keyframes flash {
+            0% { background-color: rgba(255, 0, 0, 0.5); }
+            100% { background-color: transparent; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">太湖新区智慧工厂</h1>
+        </header>
+        
+        <div class="left-panel">
+            <div class="panel-section">
+                <div class="panel-title">
+                    实时AI安全事件
+                    <div class="stats-title">统计时间: <span id="stat-time">2024-12-23 12:45:34</span></div>
+                </div>
+                <div class="panel-content">
+                    <div class="event-item">
+                        <div class="event-name">安全帽事件 <span class="event-count">4</span></div>
+                    </div>
+                    <div class="event-item">
+                        <div class="event-name">行车事件 <span class="event-count">4</span></div>
+                    </div>
+                    <div class="event-item">
+                        <div class="event-name">人员闯入事件 <span class="event-count">7</span></div>
+                    </div>
+                    <div class="event-item">
+                        <div class="event-name">火灾事件 <span class="event-count">4</span></div>
+                    </div>
+                    <div class="event-item">
+                        <div class="event-name">安全带事件 <span class="event-count">0</span></div>
+                    </div>
+                    <div class="event-item">
+                        <div class="event-name">人车事件 <span class="event-count">4</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-title">最近警报</div>
+                <div class="panel-content" id="recent-alerts">
+                    <!-- 动态生成的警报将在这里显示 -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="factory-model">
+            <canvas id="factory-canvas"></canvas>
+            <div class="time-display" id="current-time"></div>
+        </div>
+        
+        <div class="right-panel">
+            <div class="panel-section">
+                <div class="panel-title">实时摄像头</div>
+                <div class="cameras-grid">
+                    <div class="camera-feed">
+                        <img src="https://source.unsplash.com/random/320x180/?factory,clean" alt="无尘车间">
+                        <div class="camera-label">无尘车间 #1</div>
+                    </div>
+                    <div class="camera-feed">
+                        <img src="https://source.unsplash.com/random/320x180/?factory,worker" alt="受入区">
+                        <div class="camera-label">受入区 #1</div>
+                    </div>
+                    <div class="camera-feed">
+                        <img src="https://source.unsplash.com/random/320x180/?factory,crane" alt="移动天车">
+                        <div class="camera-label">移动天车 #1</div>
+                    </div>
+                    <div class="camera-feed">
+                        <img src="https://source.unsplash.com/random/320x180/?factory,vehicle" alt="移动又车">
+                        <div class="camera-label">移动又车 #1</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-title">
+                    实时人员在岗
+                    <span class="event-count">7</span>
+                </div>
+                <div class="panel-content" id="personnel-list">
+                    <div class="personnel-item">
+                        <div class="avatar">张</div>
+                        <div class="personnel-info">
+                            <div class="personnel-name">张三</div>
+                            <div class="personnel-title">制造部部长</div>
+                        </div>
+                        <div class="status-online"></div>
+                    </div>
+                    <div class="personnel-item">
+                        <div class="avatar">李</div>
+                        <div class="personnel-info">
+                            <div class="personnel-name">李四</div>
+                            <div class="personnel-title">组长</div>
+                        </div>
+                        <div class="status-online"></div>
+                    </div>
+                    <div class="personnel-item">
+                        <div class="avatar">王</div>
+                        <div class="personnel-info">
+                            <div class="personnel-name">王五</div>
+                            <div class="personnel-title">技术员</div>
+                        </div>
+                        <div class="status-online"></div>
+                    </div>
+                    <div class="personnel-item">
+                        <div class="avatar">张</div>
+                        <div class="personnel-info">
+                            <div class="personnel-name">张其</div>
+                            <div class="personnel-title">制造部部长</div>
+                        </div>
+                        <div class="status-online"></div>
+                    </div>
+                    <div class="personnel-item">
+                        <div class="avatar">张</div>
+                        <div class="personnel-info">
+                            <div class="personnel-name">张三</div>
+                            <div class="personnel-title">制造部部长</div>
+                        </div>
+                        <div class="status-online"></div>
+                    </div>
+                    <div class="personnel-item">
+                        <div class="avatar">张</div>
+                        <div class="personnel-info">
+                            <div class="personnel-name">张二</div>
+                            <div class="personnel-title">操作员</div>
+                        </div>
+                        <div class="status-online"></div>
+                    </div>
+                    <div class="personnel-item">
+                        <div class="avatar">黄</div>
+                        <div class="personnel-info">
+                            <div class="personnel-name">黄七</div>
+                            <div class="personnel-title">质检员</div>
+                        </div>
+                        <div class="status-online"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 更新当前时间
+        function updateCurrentTime() {
+            const now = new Date();
+            const formattedTime = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            }).replace(/\//g, '-');
+            
+            document.getElementById('current-time').textContent = formattedTime;
+        }
+        
+        setInterval(updateCurrentTime, 1000);
+        updateCurrentTime();
+        
+        // 随机生成警报
+        const alertTypes = [
+            { type: '安全帽事件', level: '警告', location: '车间A' },
+            { type: '行车事件', level: '危险', location: '货运区' },
+            { type: '人员闯入事件', level: '警告', location: '限制区域B' },
+            { type: '火灾事件', level: '紧急', location: '电气室' },
+            { type: '人车事件', level: '警告', location: '厂区入口' }
+        ];
+        
+        const alertsContainer = document.getElementById('recent-alerts');
+        
+        function generateRandomAlert() {
+            if (alertsContainer.children.length >= 8) {
+                alertsContainer.removeChild(alertsContainer.lastChild);
+            }
+            
+            const alert = alertTypes[Math.floor(Math.random() * alertTypes.length)];
+            const now = new Date();
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+            
+            const alertElement = document.createElement('div');
+            alertElement.className = 'event-item flash';
+            alertElement.innerHTML = `
+                <div class="event-name">${alert.type}</div>
+                <div class="event-info">
+                    <span style="color: ${alert.level === '紧急' ? '#ff4d4d' : alert.level === '危险' ? '#ffde00' : '#00ff9d'}">
+                        ${alert.level}
+                    </span>
+                    <span class="event-time">${timeStr} - ${alert.location}</span>
+                </div>
+            `;
+            
+            alertsContainer.insertBefore(alertElement, alertsContainer.firstChild);
+            
+            setTimeout(() => {
+                alertElement.classList.remove('flash');
+            }, 1000);
+        }
+        
+        // 初始生成几个警报
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                generateRandomAlert();
+            }, i * 500);
+        }
+        
+        // 随机生成新警报
+        setInterval(generateRandomAlert, 8000 + Math.random() * 7000);
+
+        // Three.js 工厂模型
+        let scene, camera, renderer, controls;
+        let factory = new THREE.Group();
+        
+        function initThreeJS() {
+            // 场景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x04183d);
+            
+            // 相机
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(15, 10, 15);
+            camera.lookAt(0, 0, 0);
+            
+            // 渲染器
+            const canvas = document.getElementById('factory-canvas');
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            
+            // 环境光
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+            scene.add(ambientLight);
+            
+            // 方向光
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7);
+            scene.add(directionalLight);
+            
+            // 点光源 - 黄色调
+            const pointLight = new THREE.PointLight(0xffde00, 0.5, 20);
+            pointLight.position.set(0, 8, 0);
+            scene.add(pointLight);
+            
+            // 控制器
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 10;
+            controls.maxDistance = 30;
+            controls.maxPolarAngle = Math.PI / 2;
+            
+            // 创建工厂
+            createFactory();
+            
+            // 添加到场景
+            scene.add(factory);
+            
+            // 动画循环
+            animate();
+            
+            // 自动旋转效果
+            autoRotate();
+        }
+        
+        function createFactory() {
+            // 地板
+            const floorGeometry = new THREE.PlaneGeometry(30, 30);
+            const floorMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x333333,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            factory.add(floor);
+            
+            // 主厂房
+            const mainBuildingGeometry = new THREE.BoxGeometry(15, 5, 10);
+            const mainBuildingMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x0a4d8c,
+                roughness: 0.7,
+                metalness: 0.3
+            });
+            const mainBuilding = new THREE.Mesh(mainBuildingGeometry, mainBuildingMaterial);
+            mainBuilding.position.y = 2.5;
+            factory.add(mainBuilding);
+            
+            // 屋顶
+            const roofGeometry = new THREE.BoxGeometry(16, 0.5, 11);
+            const roofMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x0d2d4a,
+                roughness: 0.5,
+                metalness: 0.5
+            });
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            roof.position.y = 5.25;
+            factory.add(roof);
+            
+            // 小型厂房1
+            const building1Geometry = new THREE.BoxGeometry(6, 3, 5);
+            const building1Material = new THREE.MeshStandardMaterial({ 
+                color: 0x065880,
+                roughness: 0.7,
+                metalness: 0.3
+            });
+            const building1 = new THREE.Mesh(building1Geometry, building1Material);
+            building1.position.set(-7, 1.5, 5);
+            factory.add(building1);
+            
+            // 小型厂房2
+            const building2Geometry = new THREE.BoxGeometry(5, 2, 6);
+            const building2Material = new THREE.MeshStandardMaterial({ 
+                color: 0x06486b,
+                roughness: 0.7,
+                metalness: 0.3
+            });
+            const building2 = new THREE.Mesh(building2Geometry, building2Material);
+            building2.position.set(7, 1, -5);
+            factory.add(building2);
+            
+            // 烟囱
+            const chimneyGeometry = new THREE.CylinderGeometry(0.5, 0.7, 8, 16);
+            const chimneyMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x333333,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const chimney = new THREE.Mesh(chimneyGeometry, chimneyMaterial);
+            chimney.position.set(-5, 5, -3);
+            factory.add(chimney);
+            
+            // 天车
+            const craneBaseGeometry = new THREE.BoxGeometry(2, 0.5, 10);
+            const craneMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xffde00,
+                roughness: 0.5,
+                metalness: 0.7
+            });
+            const craneBase = new THREE.Mesh(craneBaseGeometry, craneMaterial);
+            craneBase.position.set(0, 6, 0);
+            factory.add(craneBase);
+            
+            const cranePillar1Geometry = new THREE.BoxGeometry(0.3, 2, 0.3);
+            const cranePillar1 = new THREE.Mesh(cranePillar1Geometry, craneMaterial);
+            cranePillar1.position.set(0, 5, 4);
+            factory.add(cranePillar1);
+            
+            const cranePillar2Geometry = new THREE.BoxGeometry(0.3, 2, 0.3);
+            const cranePillar2 = new THREE.Mesh(cranePillar2Geometry, craneMaterial);
+            cranePillar2.position.set(0, 5, -4);
+            factory.add(cranePillar2);
+            
+            // 警示点
+            addWarningPoints();
+        }
+        
+        function addWarningPoints() {
+            // 随机添加几个警示点
+            const warningPositions = [
+                { x: -3, y: 5.5, z: 3 },
+                { x: 4, y: 5.5, z: -2 },
+                { x: -7, y: 3, z: 5 },
+                { x: 7, y: 2, z: -5 }
+            ];
+            
+            warningPositions.forEach(pos => {
+                const warningGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+                const warningMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0xff0000,
+                    emissive: 0xff0000,
+                    emissiveIntensity: 0.5
+                });
+                const warning = new THREE.Mesh(warningGeometry, warningMaterial);
+                warning.position.set(pos.x, pos.y, pos.z);
+                
+                // 添加闪烁动画
+                const pulse = { intensity: 0.5 };
+                setInterval(() => {
+                    pulse.intensity = Math.sin(Date.now() * 0.005) * 0.5 + 0.5;
+                    warningMaterial.emissiveIntensity = pulse.intensity;
+                }, 50);
+                
+                factory.add(warning);
+            });
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        function autoRotate() {
+            let angle = 0;
+            setInterval(() => {
+                angle += 0.005;
+                factory.rotation.y = Math.sin(angle) * 0.2;
+            }, 50);
+        }
+        
+        function onWindowResize() {
+            const canvas = document.getElementById('factory-canvas');
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        }
+        
+        window.addEventListener('resize', onWindowResize, false);
+        
+        // 初始化Three.js
+        window.addEventListener('load', initThreeJS);
+    </script>
+</body>
+</html> 
